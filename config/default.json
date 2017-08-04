@@ -1,0 +1,9 @@
+{
+  "uploads": {
+    "directory": "./uploads",
+    "url_path": "/uploads"
+  },
+  "database": {
+    "directory": "./database"
+  }
+}

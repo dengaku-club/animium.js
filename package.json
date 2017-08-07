@@ -1,0 +1,25 @@
+{
+  "name": "animium.js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/app.js",
+  "scripts": {
+    "setup:anitize": "cd src/anitize.js && npm i && npm run dist",
+    "setup:aspace": "npm i src/aspace.js && mkdirp uploads && mkdirp database",
+    "postinstall": "npm-run-all setup:*",
+    "start": "node src/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dadaa/animium.js.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dadaa/animium.js/issues"
+  },
+  "homepage": "https://github.com/dadaa/animium.js#readme",
+  "dependencies": {
+    "npm-run-all": "^4.0.2"
+  }
+}

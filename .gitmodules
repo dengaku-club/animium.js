@@ -1,6 +1,6 @@
 [submodule "aspace.js"]
-	path = aspace.js
+	path = src/aspace.js
 	url = git@github.com:dengaku-club/aspace.js.git
 [submodule "anitize.js"]
-	path = anitize.js
+	path = src/anitize.js
 	url = git@github.com:dengaku-club/anitize.js.git

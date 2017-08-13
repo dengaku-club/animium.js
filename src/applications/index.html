@@ -1,0 +1,127 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+    html {
+      background-color: black;
+      overflow: hidden;
+      padding: 0;
+      margin: 0;
+    }
+
+    body {
+      padding: 0;
+      margin: 0;
+    }
+
+    .animation {
+      position: relative;
+      background-size: cover;
+    }
+    </style>
+    <script>
+    class Application {
+      constructor(animations) {
+        this.animations = animations;
+        document.addEventListener('keypress', e => {
+          if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') {
+            return;
+          }
+          if (e.key === 'ArrowRight') {
+            if (this.index === undefined) {
+              this.index = 0;
+            } else {
+              this.index =
+                this.index == this.animations.length - 1 ? 0 : this.index + 1;
+            }
+          } else {
+            if (this.index === undefined) {
+              this.index = this.animations.length - 1;
+            } else {
+              this.index =
+                this.index == 0 ? this.animations.length - 1 : this.index - 1;
+            }
+          }
+          this.animate(this.animations[this.index]);
+        });
+      }
+      animate(animation) {
+        const previous = document.querySelector('.animation');
+        if (previous) {
+          previous.remove();
+        }
+
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const horizontalRate = windowWidth / animation.canvas_width;
+        const verticalRate = windowHeight / animation.canvas_height;
+        let width = 0;
+        let height = 0;
+        if (horizontalRate > verticalRate) {
+          width = windowWidth * verticalRate / horizontalRate;
+          height = windowHeight;
+        } else {
+          width = windowWidth;
+          height = windowHeight * horizontalRate / verticalRate;
+        }
+        const top = (windowHeight - height) * 0.5;
+        const left = (windowWidth - width) * 0.5;
+
+        const div = document.createElement('div');
+        div.style.width = `${width}px`;
+        div.style.height = `${height}px`;
+        div.style.top = `${top}px`;
+        div.style.left = `${left}px`;
+        div.classList.add('animation');
+        target.appendChild(div);
+        div.style.backgroundImage = `url(${animation.image})`;
+        const keyframes = [];
+        for (let i = 0; i < animation.frame_count; i++) {
+          const keyframe = {
+            offset: i / animation.frame_count,
+            easing: 'steps(1, end)',
+            backgroundPositionX: `${-i * width}px`,
+          };
+          keyframes.push(keyframe);
+        }
+        div.animate(keyframes, {
+          duration: animation.animation_duration,
+          easing: animation.animation_easing,
+          iterations: Infinity,
+        });
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="target"></div>
+    <script>
+    const urlParameters = () => {
+      const parameters = {};
+      window.location.search.slice(1).split('&').forEach(keyValueString => {
+        const keyValue = keyValueString.split('=');
+        parameters[keyValue[0]] = keyValue[1];
+      });
+      return parameters;
+    }
+
+    const parameters = urlParameters();
+    const space = parameters['space'];
+    if (!space) {
+      throw new Error('No specified space in url query string');
+    }
+    const request = new XMLHttpRequest();
+    request.open('GET', `/aspace/?space=${space}`, true);
+    request.onreadystatechange = () => {
+      if (request.status !== 200) {
+        console.error(request.responseText);
+      }
+      if (request.readyState === 4) {
+        const records = JSON.parse(request.responseText);
+        new Application(records);
+      }
+    };
+    request.send(null);
+    </script>
+  </body>
+</html>

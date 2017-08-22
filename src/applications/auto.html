@@ -1,0 +1,139 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+    html {
+      background-color: black;
+      overflow: hidden;
+      padding: 0;
+      margin: 0;
+    }
+
+    body {
+      padding: 0;
+      margin: 0;
+    }
+
+    .animation {
+      position: relative;
+      background-size: cover;
+    }
+    </style>
+    <script>
+    class Application {
+      constructor(space) {
+        this.space = space;
+      }
+
+      play() {
+        this.load();
+      }
+
+      load(newer = 0) {
+        const request = new XMLHttpRequest();
+        request.open('GET',
+                     `/aspace/?space=${this.space}&newer=${newer}`, true);
+        request.onreadystatechange = () => {
+          if (request.status !== 200) {
+            console.error(request.responseText);
+            return;
+          }
+          if (request.readyState === 4) {
+            const records = JSON.parse(request.responseText);
+            this.animateList(records);
+          }
+        };
+        request.send(null);
+      }
+
+      animateList(records, index = 0) {
+        if (records.length == 0) {
+          setTimeout(() => {
+            this.load(this.newer);
+          }, 5000);
+          return;
+        }
+
+        const iterations = index === records.length - 1 ? Infinity : 1;
+        const record = records[index];
+        const animation = this.animate(record, iterations);
+        if (index === records.length - 1) {
+          this.newer = record.timestamp;
+          this.load(this.newer);
+          return;
+        }
+        animation.onfinish = () => {
+          this.animateList(records, index + 1);
+        };
+      }
+
+      animate(record, iterations) {
+        const previous = document.querySelector('.animation');
+        if (previous) {
+          previous.remove();
+        }
+
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const horizontalRate = windowWidth / record.canvas_width;
+        const verticalRate = windowHeight / record.canvas_height;
+        let width = 0;
+        let height = 0;
+        if (horizontalRate > verticalRate) {
+          width = windowWidth * verticalRate / horizontalRate;
+          height = windowHeight;
+        } else {
+          width = windowWidth;
+          height = windowHeight * horizontalRate / verticalRate;
+        }
+        const top = (windowHeight - height) * 0.5;
+        const left = (windowWidth - width) * 0.5;
+
+        const div = document.createElement('div');
+        div.style.width = `${width}px`;
+        div.style.height = `${height}px`;
+        div.style.top = `${top}px`;
+        div.style.left = `${left}px`;
+        div.classList.add('animation');
+        target.appendChild(div);
+        div.style.backgroundImage = `url(${record.image})`;
+        const keyframes = [
+          {
+            backgroundPositionX: `0px`,
+            easing: `frames(${record.frame_count})`
+          },
+          {
+            backgroundPositionX: `-${(record.frame_count - 1) * width}px`,
+          },
+        ];
+        return div.animate(keyframes, {
+          duration: record.animation_duration * record.frame_count,
+          easing: record.animation_easing,
+          iterations: iterations,
+        });
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="target"></div>
+    <script>
+    const urlParameters = () => {
+      const parameters = {};
+      window.location.search.slice(1).split('&').forEach(keyValueString => {
+        const keyValue = keyValueString.split('=');
+        parameters[keyValue[0]] = keyValue[1];
+      });
+      return parameters;
+    }
+
+    const parameters = urlParameters();
+    const space = parameters['space'];
+    if (!space) {
+      throw new Error('No specified space in url query string');
+    }
+    const application = new Application(space);
+    application.play();
+    </script>
+  </body>
+</html>
